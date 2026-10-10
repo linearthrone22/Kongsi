@@ -17,7 +17,15 @@ export const fmt = (wei, d = 4) => {
   return n.toLocaleString("en-US", { maximumFractionDigits: d });
 };
 export const short = (a) => (a ? a.slice(0, 6) + "…" + a.slice(-4) : "");
-export const errMsg = (e) => e?.reason || e?.shortMessage || e?.message || String(e);
+export const errMsg = (e) => {
+  const raw = [e?.reason, e?.shortMessage, e?.message, e?.info?.error?.message, e?.error?.message].filter(Boolean).join(" | ");
+  if (/gas limit|exceeds block gas|intrinsic gas/i.test(raw))
+    return "Transaksi melebihi batas gas jaringan. Data yang dikirim terlalu besar — unggah file sebagai link, jangan sebagai data on-chain.";
+  if (/insufficient funds/i.test(raw)) return `Saldo ${SYM} tidak cukup untuk nilai transaksi + biaya gas.`;
+  if (/user rejected|user denied|ACTION_REJECTED/i.test(raw)) return "Transaksi dibatalkan di wallet.";
+  if (/could not coalesce/i.test(raw)) return "Jaringan menolak transaksi (kemungkinan gas/data terlalu besar). Coba lagi dengan bukti berupa link.";
+  return e?.reason || e?.shortMessage || e?.message || String(e);
+};
 
 export const STATUS = ["Funding", "Aktif", "Selesai", "Gagal"];
 export const MSTATUS = ["Belum ada bukti", "Menunggu verifikasi", "Terverifikasi", "Ditolak"];

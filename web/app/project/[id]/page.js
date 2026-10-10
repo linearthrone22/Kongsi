@@ -6,15 +6,137 @@ import { useKongsi, fmt, short, MSTATUS, explorerAddress, SYM } from "../../../l
 import { profileOf } from "../../../lib/profiles";
 import { Icon, StatusPill, Cover, Progress } from "../../../components/ui";
 
-const isImg = (u) => /^data:image\//.test(u) || /\.(png|jpe?g|gif|webp)(\?|$)/i.test(u) || /images\.unsplash\.com/.test(u);
+const MAX_URI = 1024; // URI bukti disimpan di storage kontrak: tiap 32 byte ±20k gas
+
+/** Pisahkan URL dan metadata `#sha256=…&type=…` yang ditambahkan saat upload. */
+function parseEvidence(uri) {
+  const [url, frag = ""] = uri.split("#");
+  const q = new URLSearchParams(frag);
+  return { url, sha: q.get("sha256"), type: q.get("type") || "" };
+}
+const isImg = ({ url, type }) =>
+  type.startsWith("image/") || /^data:image\//.test(url) || /\.(png|jpe?g|gif|webp)(\?|$)/i.test(url) || /images\.unsplash\.com/.test(url);
+
+function HashCheck({ url, sha }) {
+  const [state, setState] = useState("idle");
+  const check = async (e) => {
+    e.preventDefault();
+    setState("checking");
+    try {
+      const buf = await (await fetch(url)).arrayBuffer();
+      const digest = await crypto.subtle.digest("SHA-256", buf);
+      const hex = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+      setState(hex === sha ? "ok" : "bad");
+    } catch {
+      setState("err");
+    }
+  };
+  const label = { idle: "Cek integritas", checking: "Mengecek…", ok: "✓ Hash cocok", bad: "✗ File berubah!", err: "Gagal cek" }[state];
+  return (
+    <div className={`hash ${state}`} title={`SHA-256 on-chain: ${sha}`}>
+      <span>sha256 {sha.slice(0, 10)}…</span>
+      <button className="link-btn" onClick={check} disabled={state === "checking"}>{label}</button>
+    </div>
+  );
+}
 
 function Evidence({ uri }) {
   const [bad, setBad] = useState(false);
   if (!uri) return <div className="ev-empty">Belum ada dokumen</div>;
-  return isImg(uri) && !bad ? (
-    <a href={uri} target="_blank" rel="noreferrer"><img className="ev-img" src={uri} alt="bukti" onError={() => setBad(true)} /></a>
-  ) : (
-    <a className="ev-link" href={uri} target="_blank" rel="noreferrer">📄 {uri.length > 40 ? uri.slice(0, 40) + "…" : uri}</a>
+  const ev = parseEvidence(uri);
+  return (
+    <>
+      {isImg(ev) && !bad ? (
+        <a href={ev.url} target="_blank" rel="noreferrer"><img className="ev-img" src={ev.url} alt="bukti" onError={() => setBad(true)} /></a>
+      ) : (
+        <a className="ev-link" href={ev.url} target="_blank" rel="noreferrer">
+          📄 {ev.type === "application/pdf" ? "Dokumen PDF" : ev.url.length > 40 ? ev.url.slice(0, 40) + "…" : ev.url} ↗
+        </a>
+      )}
+      {ev.sha && <HashCheck url={ev.url} sha={ev.sha} />}
+    </>
+  );
+}
+
+/** Form bukti pengusaha: file di-upload off-chain, yang dikirim on-chain hanya URL + hash. */
+function EvidenceUploader({ id, milestone }) {
+  const { reader, account, send, setToast } = useKongsi();
+  const [uri, setUri] = useState("");
+  const [fileName, setFileName] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [cost, setCost] = useState(null);
+
+  const tooLong = uri.length > MAX_URI;
+
+  useEffect(() => {
+    setCost(null);
+    if (!uri || tooLong || !reader || !account) return;
+    let alive = true;
+    const t = setTimeout(async () => {
+      try {
+        const [gas, fee] = await Promise.all([
+          reader.submitEvidence.estimateGas(id, uri, { from: account }),
+          reader.runner.provider.getFeeData(),
+        ]);
+        if (alive) setCost({ gas, fee: gas * (fee.maxFeePerGas ?? fee.gasPrice ?? 0n) });
+      } catch {
+        if (alive) setCost({ error: true });
+      }
+    }, 400);
+    return () => { alive = false; clearTimeout(t); };
+  }, [uri, tooLong, reader, account, id]);
+
+  const onFile = async (e) => {
+    const f = e.target.files?.[0];
+    e.target.value = "";
+    if (!f) return;
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", f);
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      const j = await res.json();
+      if (!res.ok) throw new Error(j.error || "Upload gagal");
+      setUri(j.url);
+      setFileName(`${f.name} · ${(j.size / 1024).toFixed(0)} KB · ${j.storage === "ipfs" ? "IPFS" : "server"}`);
+    } catch (err) {
+      setToast({ type: "err", msg: err.message });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const submit = async () => {
+    if (await send("Unggah bukti", (c) => c.submitEvidence(id, uri))) {
+      setUri("");
+      setFileName("");
+    }
+  };
+
+  return (
+    <>
+      <p className="small">Unggah bukti untuk milestone <b>{milestone.title}</b> ({Number(milestone.bps) / 100}% dana akan cair jika &gt;50% investor memverifikasi).</p>
+      <div className="row gap wrapflex">
+        <input className="field grow" placeholder="Tempel link bukti (IPFS / Drive / foto) atau pilih file"
+          value={fileName || uri} onChange={(e) => { setFileName(""); setUri(e.target.value.trim()); }} />
+        <label className={`btn dark file ${uploading ? "disabled" : ""}`}>
+          {uploading ? "Mengunggah…" : "Pilih file"}
+          <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf" onChange={onFile} hidden disabled={uploading} />
+        </label>
+        <button className="btn neon" disabled={!uri || uploading || tooLong} onClick={submit}>Unggah bukti</button>
+      </div>
+      <div className="ev-meta small">
+        {tooLong ? (
+          <span className="red">Link terlalu panjang ({uri.length} karakter, maks. {MAX_URI}). Simpan file di luar chain lalu tempel link-nya.</span>
+        ) : cost?.gas ? (
+          <span className="muted">Estimasi biaya: <b>~{fmt(cost.fee, 4)} {SYM}</b> ({(Number(cost.gas) / 1000).toFixed(0)}k gas). File disimpan off-chain; on-chain hanya link + hash SHA-256.</span>
+        ) : cost?.error ? (
+          <span className="amber">Estimasi gas gagal — transaksi kemungkinan akan ditolak.</span>
+        ) : (
+          <span className="muted">JPG/PNG/WEBP/GIF/PDF maks. 8 MB. Hash SHA-256 file ikut tercatat on-chain.</span>
+        )}
+      </div>
+    </>
   );
 }
 
@@ -103,7 +225,6 @@ export default function ProjectPage({ params }) {
   const [d, setD] = useState(null);
   const [missing, setMissing] = useState(false);
   const [qty, setQty] = useState(1);
-  const [evUri, setEvUri] = useState("");
   const [rev, setRev] = useState("0.1");
   const [lq, setLq] = useState(1);
   const [lp, setLp] = useState("");
@@ -149,15 +270,6 @@ export default function ProjectPage({ params }) {
   const left = Number(p.totalTokens - p.sold);
   const market = status === 2 || (status === 1 && cur > 0);
   const verified = ms.filter((m) => Number(m.status) === 2).length;
-
-  const onFile = (e) => {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    if (f.size > 150 * 1024) return alert("File >150KB. Pakai link (IPFS/Drive) atau gambar yang lebih kecil.");
-    const r = new FileReader();
-    r.onload = () => setEvUri(String(r.result));
-    r.readAsDataURL(f);
-  };
 
   return (
     <>
@@ -299,14 +411,7 @@ export default function ProjectPage({ params }) {
           <h2>Panel Pengusaha</h2>
           {status === 0 && <p className="muted small">Menunggu pendanaan penuh sebelum milestone pertama dimulai.</p>}
           {status === 1 && curStatus === 0 && (
-            <>
-              <p className="small">Unggah bukti untuk milestone <b>{ms[cur].title}</b> ({Number(ms[cur].bps) / 100}% dana akan cair jika &gt;50% investor memverifikasi).</p>
-              <div className="row gap wrapflex">
-                <input className="field grow" placeholder="Link bukti (IPFS / Drive / foto)" value={evUri.startsWith("data:") ? "[gambar terpilih]" : evUri} onChange={(e) => setEvUri(e.target.value)} />
-                <label className="btn dark file">Pilih gambar<input type="file" accept="image/*" onChange={onFile} hidden /></label>
-                <button className="btn neon" disabled={!evUri} onClick={async () => (await send("Unggah bukti", (c) => c.submitEvidence(id, evUri))) && setEvUri("")}>Unggah bukti</button>
-              </div>
-            </>
+            <EvidenceUploader id={id} milestone={ms[cur]} />
           )}
           {reviewing && <p className="muted small">Bukti sedang diverifikasi investor ({apr.toFixed(0)}% setuju).</p>}
           {status === 2 && <p className="muted small">Semua milestone selesai. Setor hasil penjualan lewat panel <a className="neon-t" href="#payout">Pembayaran Akhir</a> di atas.</p>}

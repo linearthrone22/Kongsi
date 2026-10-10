@@ -19,14 +19,6 @@ export const Icon = {
   lock: (p) => <svg viewBox="0 0 24 24" width="30" height="30" {...P} {...p}><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V8a4 4 0 018 0v3" /><path d="M12 15v2" /></svg>,
   trend: (p) => <svg viewBox="0 0 24 24" width="30" height="30" {...P} {...p}><path d="M3 17l6-6 4 4 8-8" /><path d="M15 7h6v6" /></svg>,
   refund: (p) => <svg viewBox="0 0 24 24" width="30" height="30" {...P} {...p}><path d="M3 12a9 9 0 109-9 9.7 9.7 0 00-6.7 2.8L3 8" /><path d="M3 3v5h5" /><path d="M12 8v8M9.5 10.5c0-1 1.1-1.5 2.5-1.5s2.5.6 2.5 1.6c0 2.4-5 1.2-5 3.6 0 1 1.1 1.8 2.5 1.8s2.5-.6 2.5-1.6" /></svg>,
-  logo: (p) => (
-    <svg viewBox="0 0 32 32" width="30" height="30" {...p}>
-      <rect x="3" y="14" width="6" height="15" rx="1.5" fill="#c6f432" />
-      <rect x="13" y="7" width="6" height="22" rx="1.5" fill="#c6f432" />
-      <rect x="23" y="11" width="6" height="18" rx="1.5" fill="#c6f432" />
-      <circle cx="16" cy="3.5" r="2.5" fill="#c6f432" />
-    </svg>
-  ),
 };
 
 const STATUS_ICON = [Icon.clock, Icon.check, Icon.check, Icon.x];
@@ -53,7 +45,7 @@ export function Avatar({ address, size = 36 }) {
 export function Cover({ src, label, className = "" }) {
   const [bad, setBad] = useState(!src);
   return bad ? (
-    <div className={`cover fallback ${className}`}><span>{(label || "K").slice(0, 1)}</span></div>
+    <div className={`cover fallback ${className}`}><img src="/brand/kongsi-mark.png" alt="" /></div>
   ) : (
     <img className={`cover ${className}`} src={src} alt={label || ""} onError={() => setBad(true)} />
   );

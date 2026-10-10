@@ -15,3 +15,9 @@ contracts/coverage/
 # misc
 .DS_Store
 *.log
+
+# file bukti yang di-upload (mode server lokal)
+web/.uploads/
+
+# materi demo/video (lokal saja)
+demo/

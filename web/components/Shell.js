@@ -61,7 +61,7 @@ function ConnectModal() {
     <div className="modal-bg" onClick={() => setConnectOpen(false)}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="row between">
-          <h3>Connect Wallet</h3>
+          <h3 className="modal-title"><img src="/brand/kongsi-mark.png" alt="" /> Connect Wallet</h3>
           <button className="icon-btn" onClick={() => setConnectOpen(false)}><Icon.x /></button>
         </div>
         <button className="wallet-opt" onClick={() => connectMetaMask().then(done)}>
@@ -101,7 +101,10 @@ export default function Shell({ children }) {
   return (
     <div className="app">
       <aside className="side">
-        <Link href="/" className="logo"><Icon.logo /> <span>KONGSI</span></Link>
+        <Link href="/" className="logo" aria-label="Kongsi">
+          <img className="logo-full" src="/brand/kongsi-logo.png" alt="Kongsi" />
+          <img className="logo-mark" src="/brand/kongsi-mark.png" alt="" />
+        </Link>
         <nav>
           {NAV.map(({ href, label, icon: I }) => {
             const active = href === "/" ? path === "/" || path.startsWith("/project") : path.startsWith(href);
