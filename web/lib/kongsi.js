@@ -37,6 +37,40 @@ const store = {
   set: (v) => { try { v ? localStorage.setItem(WALLET_KEY, v) : localStorage.removeItem(WALLET_KEY); } catch {} },
 };
 
+// RPC publik Monad dibatasi ±15 request/detik per IP. Provider ini mengantre request
+// (default 10/detik) dan mengulang otomatis bila kena limit, agar halaman tidak macet "Memuat".
+const RPS = Number(process.env.NEXT_PUBLIC_RPC_RPS) || (NETWORK === "localhost" ? 0 : 10);
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const isRateLimited = (e) => /limited|rate limit|too many|429|-32011|-32005/i.test(
+  JSON.stringify(e?.info?.error ?? e?.error ?? "") + " " + (e?.message ?? ""));
+
+class ThrottledProvider extends JsonRpcProvider {
+  constructor(url, rps) {
+    super(url, undefined, rps ? { batchMaxCount: 1 } : undefined);
+    this.gap = rps ? 1000 / rps : 0;
+    this.nextSlot = 0;
+  }
+  async send(method, params) {
+    for (let attempt = 0; ; attempt++) {
+      if (this.gap) {
+        const now = Date.now();
+        const wait = Math.max(0, this.nextSlot - now);
+        this.nextSlot = Math.max(now, this.nextSlot) + this.gap;
+        if (wait) await sleep(wait);
+      }
+      try {
+        return await super.send(method, params);
+      } catch (e) {
+        if (attempt < 5 && isRateLimited(e)) {
+          await sleep(300 * 2 ** attempt);
+          continue;
+        }
+        throw e;
+      }
+    }
+  }
+}
+
 const Ctx = createContext(null);
 export const useKongsi = () => useContext(Ctx);
 
@@ -51,7 +85,7 @@ export function KongsiProvider({ children }) {
   const [tick, setTick] = useState(0);
   const [toast, setToast] = useState(null);
 
-  const readProvider = useMemo(() => new JsonRpcProvider(RPC), []);
+  const readProvider = useMemo(() => new ThrottledProvider(RPC, RPS), []);
   const refresh = useCallback(() => setTick((t) => t + 1), []);
 
   useEffect(() => {
@@ -144,7 +178,7 @@ export function KongsiProvider({ children }) {
   }, [connectMetaMask]);
 
   useEffect(() => {
-    const id = setInterval(refresh, 5000);
+    const id = setInterval(refresh, IS_LOCAL ? 5000 : 12000);
     return () => clearInterval(id);
   }, [refresh]);
 
