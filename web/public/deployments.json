@@ -1,0 +1,12 @@
+{
+  "localhost": {
+    "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+    "chainId": 31337,
+    "deployTx": "0x9796c57061c2b9ea4a5f5525a9d04f685efbb2d1aa575e62b7687073089d6255"
+  },
+  "monadTestnet": {
+    "address": "0xd1fEabF3567fa77a70bc8de606B7ABd12B689217",
+    "chainId": 10143,
+    "deployTx": "0xd0ff18bfc5af592a5aed4719a5a8f965dcacf095852423578f6399139da23a8b"
+  }
+}

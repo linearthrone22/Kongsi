@@ -1,0 +1,17 @@
+# deps & build
+node_modules/
+.next/
+out/
+contracts/artifacts/
+contracts/cache/
+contracts/typechain-types/
+contracts/coverage/
+
+# secrets
+.env
+.env.local
+.env.*.local
+
+# misc
+.DS_Store
+*.log
