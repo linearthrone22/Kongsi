@@ -34,17 +34,38 @@ export async function readLocal(name) {
   }
 }
 
-/** Upload ke IPFS via Pinata (opsional, aktif jika PINATA_JWT di-set). */
+/**
+ * Upload ke IPFS via Pinata (aktif jika PINATA_JWT di-set).
+ * Pakai API v3 (key dengan scope "Files: Write") di jaringan publik; jika key lama
+ * (scope legacy pinFileToIPFS) ditolak v3, coba endpoint legacy.
+ */
 export async function pinToIpfs(buf, filename, mime) {
-  const fd = new FormData();
-  fd.append("file", new Blob([buf], { type: mime }), filename);
-  const res = await fetch("https://api.pinata.cloud/pinning/pinFileToIPFS", {
+  const auth = { Authorization: `Bearer ${process.env.PINATA_JWT.trim()}` };
+  const form = (extra = {}) => {
+    const fd = new FormData();
+    fd.append("file", new Blob([buf], { type: mime }), filename);
+    for (const [k, v] of Object.entries(extra)) fd.append(k, v);
+    return fd;
+  };
+
+  let cid;
+  const v3 = await fetch("https://uploads.pinata.cloud/v3/files", {
     method: "POST",
-    headers: { Authorization: `Bearer ${process.env.PINATA_JWT}` },
-    body: fd,
+    headers: auth,
+    body: form({ network: "public", name: filename }),
   });
-  if (!res.ok) throw new Error(`Pinata ${res.status}: ${await res.text()}`);
-  const { IpfsHash } = await res.json();
-  const gateway = process.env.PINATA_GATEWAY || "https://gateway.pinata.cloud";
-  return `${gateway}/ipfs/${IpfsHash}`;
+  if (v3.ok) {
+    cid = (await v3.json())?.data?.cid;
+  } else if (v3.status === 401 || v3.status === 403) {
+    const legacy = await fetch("https://api.pinata.cloud/pinning/pinFileToIPFS", { method: "POST", headers: auth, body: form() });
+    if (!legacy.ok) throw new Error(`Pinata ${legacy.status}: ${(await legacy.text()).slice(0, 200)}`);
+    cid = (await legacy.json()).IpfsHash;
+  } else {
+    throw new Error(`Pinata ${v3.status}: ${(await v3.text()).slice(0, 200)}`);
+  }
+  if (!cid) throw new Error("Pinata tidak mengembalikan CID");
+
+  // PINATA_GATEWAY = gateway khusus akun (mis. https://xxx.mypinata.cloud) agar lebih cepat.
+  const gateway = (process.env.PINATA_GATEWAY || "https://gateway.pinata.cloud").replace(/\/$/, "");
+  return `${gateway}/ipfs/${cid}`;
 }
