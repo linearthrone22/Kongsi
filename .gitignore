@@ -21,3 +21,6 @@ web/.uploads/
 
 # materi demo/video (lokal saja)
 demo/
+
+# wallet & progres skrip demo (berisi private key testnet)
+contracts/demo/

@@ -15,7 +15,7 @@ function parseEvidence(uri) {
   return { url, sha: q.get("sha256"), type: q.get("type") || "" };
 }
 const isImg = ({ url, type }) =>
-  type.startsWith("image/") || /^data:image\//.test(url) || /\.(png|jpe?g|gif|webp)(\?|$)/i.test(url) || /images\.unsplash\.com/.test(url);
+  type.startsWith("image/") || /^data:image\//.test(url) || /\.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(url) || /images\.unsplash\.com/.test(url);
 
 function HashCheck({ url, sha }) {
   const [state, setState] = useState("idle");

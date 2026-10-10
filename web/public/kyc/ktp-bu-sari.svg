@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 540" width="860" height="540" font-family="Arial, Helvetica, sans-serif">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#cfe3f7"/><stop offset="1" stop-color="#8fbde8"/></linearGradient></defs>
+<rect width="860" height="540" rx="28" fill="url(#g)"/>
+<text x="430" y="52" text-anchor="middle" font-size="26" font-weight="700" fill="#123">PROVINSI (CONTOH)</text>
+<text x="430" y="84" text-anchor="middle" font-size="22" font-weight="700" fill="#123">KOTA BANDUNG</text>
+<g font-size="21" fill="#123">
+<text x="40" y="140" font-weight="700">NIK</text><text x="210" y="140" font-weight="700">: 3215 •••• •••• ••••</text>
+<text x="40" y="185">Nama</text><text x="210" y="185">: SARI WULANDARI</text>
+<text x="40" y="222">Tempat/Tgl Lahir</text><text x="210" y="222">: ██████, ██-██-████</text>
+<text x="40" y="259">Alamat</text><text x="210" y="259">: ████████████████</text>
+<text x="40" y="333">Pekerjaan</text><text x="210" y="333">: WIRASWASTA</text>
+<text x="40" y="370">Kewarganegaraan</text><text x="210" y="370">: WNI</text></g>
+<rect x="640" y="120" width="180" height="230" rx="10" fill="#222" opacity=".9"/>
+<text x="730" y="245" text-anchor="middle" font-size="18" fill="#fff" font-weight="700">FOTO DISENSOR</text>
+<g transform="rotate(-14 430 270)"><rect x="150" y="225" width="560" height="80" rx="12" fill="#c6f432" opacity=".92"/>
+<text x="430" y="278" text-anchor="middle" font-size="40" font-weight="800" fill="#101400">KYC VERIFIED · KONGSI</text></g>
+<text x="430" y="505" text-anchor="middle" font-size="16" fill="#123">ILUSTRASI DUMMY UNTUK DEMO — BUKAN DOKUMEN ASLI</text></svg>

@@ -1,0 +1,3 @@
+# Dokumen bukti demo: byte harus identik dengan hash SHA-256 on-chain
+web/public/demo-evidence/** -text
+web/public/kyc/** -text

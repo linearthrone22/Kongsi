@@ -1,0 +1,66 @@
+{
+  "darto1-bibit": {
+    "file": "darto1-bibit.svg",
+    "sha256": "03502f28bd0473c0a63a7d11b48cf9814483836338ed22a0db3de554ca4a586a"
+  },
+  "darto1-rawat": {
+    "file": "darto1-rawat.svg",
+    "sha256": "7b5c0f8a6868e623da39c55b203efea747fd5d1143d06a3eb761195de934e3dc"
+  },
+  "darto1-panen": {
+    "file": "darto1-panen.svg",
+    "sha256": "e88193c847820b4a0819ff739fa538fa3068a48238d7ea134817a700ac51331d"
+  },
+  "sari1-bahan": {
+    "file": "sari1-bahan.svg",
+    "sha256": "fd5119a210c79dc6701c8e8751d65ebf210c04948a411a779ad88a11e96c19f6"
+  },
+  "sari1-produksi": {
+    "file": "sari1-produksi.svg",
+    "sha256": "1da2d18fcbbed5ee3596db042817e13cebd102323a20066ad4dbb7b07954fb56"
+  },
+  "sari1-jual": {
+    "file": "sari1-jual.svg",
+    "sha256": "3b02a74716374fca7f21b94d6331b2504a17340a9f91b876336aa3499feb05fd"
+  },
+  "darto2-lahan": {
+    "file": "darto2-lahan.svg",
+    "sha256": "1ae862900e4540e5d87e7e723c935cbd9dd7f6c5027d8fcc461e6b395eb7453c"
+  },
+  "darto2-pupuk": {
+    "file": "darto2-pupuk.svg",
+    "sha256": "ab8189a7aff1cd31e63af1414b0300ca1e87f2c34b23678322ab457d7519d8de"
+  },
+  "darto2-rawat": {
+    "file": "darto2-rawat.svg",
+    "sha256": "1787ea4c22cec1f68ceb49399075dbc8217cae58c8302a92302f04a0b8b1be4a"
+  },
+  "darto2-panen": {
+    "file": "darto2-panen.svg",
+    "sha256": "718c7883cb161b2671649c986ad4b438f28700481ca0b2cc055b07f31ef21c02"
+  },
+  "bayu1-armada": {
+    "file": "bayu1-armada.svg",
+    "sha256": "e5542d97f5397606580f0271ac0d11c6269061261a8052d424faedcfef7b6c40"
+  },
+  "bayu1-minimarket": {
+    "file": "bayu1-minimarket.svg",
+    "sha256": "8cfff16860113fe200bc03e8477f08294aa8b7c4a2720e1303a39e80ac093161"
+  },
+  "bayu1-laporan": {
+    "file": "bayu1-laporan.svg",
+    "sha256": "98589da6604f34ca8a207c5e877477927266cf7d084ee8a58379f26217c3b052"
+  },
+  "rudi1-mesin-palsu": {
+    "file": "rudi1-mesin-palsu.svg",
+    "sha256": "e2ed9bbf17ec21b9f0bf62e2009c0cee0ac2faaeb6bac6acb177a285f1c571f8"
+  },
+  "sari2-bahan": {
+    "file": "sari2-bahan.svg",
+    "sha256": "9ca47be65e33c88e27ee7509cd1e906115e16e487f8b83200ab8c8a9847d8e31"
+  },
+  "sari2-izin": {
+    "file": "sari2-izin.svg",
+    "sha256": "cd2b0cc33ac9462871571abcb87c45cf6c3069024d05ee4fba254baad0144036"
+  }
+}
